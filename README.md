@@ -14,6 +14,8 @@ A modern, blazing-fast SVG icon viewer and manager designed for developers and d
 - **👁️ Live Preview**: Detailed view with dimension and viewBox information.
 - **⚡ Static & Dynamic**: Runs as a local Node.js server or a static GitHub Pages site.
 
+> **Note:** This is the **Local Version** documentation. For the **Static Version** (GitHub Pages), please see the [GitHub Folder README](github/README.md).
+
 ## 🚀 Quick Start
 
 ### Prerequisites
