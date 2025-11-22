@@ -172,8 +172,10 @@ class IconBrowser {
       }
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
-
-        if (this.state.allIconsInCurrentView.length > 0) {
+        // Select all if there are any items (icons or folders)
+        const hasItems = this.state.allIconsInCurrentView.length > 0 || 
+                         this.state.allFoldersInCurrentView.length > 0;
+        if (hasItems) {
           e.preventDefault();
           this.selectAll();
         }
@@ -229,16 +231,15 @@ class IconBrowser {
     el.appendChild(nameEl);
 
     el.addEventListener("click", (e) => {
-      if (isFolder) {
+      // Ctrl+Click: Select both icons and folders
+      if (e.ctrlKey || e.metaKey) {
+        this.toggleSelection(item.path);
+      } else if (isFolder) {
+        // Regular click on folder: Navigate
         this.goToFolder(item.path);
       } else {
-
-        if (e.ctrlKey || e.metaKey) {
-          this.toggleSelection(item.path);
-        } else {
-
-          this.selectIcon(item, el);
-        }
+        // Regular click on icon: Open info panel
+        this.selectIcon(item, el);
       }
     });
 
@@ -447,8 +448,13 @@ class IconBrowser {
   }
 
   selectAll() {
+    // Select all icons
     this.state.allIconsInCurrentView.forEach(icon => {
       this.state.selectedPaths.add(icon.path);
+    });
+    // Select all folders
+    this.state.allFoldersInCurrentView.forEach(folder => {
+      this.state.selectedPaths.add(folder.path);
     });
     this.updateBatchUI();
     this.renderIcons();
@@ -462,7 +468,8 @@ class IconBrowser {
 
   updateBatchUI() {
     const count = this.state.selectedPaths.size;
-    const hasIcons = this.state.allIconsInCurrentView.length > 0;
+    const hasItems = this.state.allIconsInCurrentView.length > 0 || 
+                     this.state.allFoldersInCurrentView.length > 0;
 
     if (this.dom.batchCount) this.dom.batchCount.textContent = count;
 
@@ -476,12 +483,14 @@ class IconBrowser {
       }
     }
 
-    // Select All button - always show when there are icons
+    // Select All button - show when there are icons or folders
     if (this.dom.selectAllBtn) {
-      if (hasIcons) {
+      if (hasItems) {
         this.dom.selectAllBtn.classList.remove("hidden");
         // Disable if all selected
-        this.dom.selectAllBtn.disabled = (count >= this.state.allIconsInCurrentView.length);
+        const totalItems = this.state.allIconsInCurrentView.length + 
+                           this.state.allFoldersInCurrentView.length;
+        this.dom.selectAllBtn.disabled = (count >= totalItems);
       } else {
         this.dom.selectAllBtn.classList.add("hidden");
       }

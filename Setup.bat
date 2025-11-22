@@ -29,7 +29,7 @@ echo    - Folder structure ready.
 echo.
 
 REM 2. Install Dependencies
-echo [2/2] Installing dependencies...
+echo [2/3] Installing dependencies...
 
 REM Check if Node.js is installed
 where node >nul 2>nul
@@ -42,6 +42,22 @@ if %ERRORLEVEL% NEQ 0 (
 
 call npm install
 
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo ========================================
+    echo  ERROR: Failed to install dependencies
+    echo ========================================
+    goto :end
+)
+
+echo.
+
+REM 3. Generate GitHub Pages Static Files
+echo [3/3] Generating GitHub Pages static files...
+echo.
+
+node scripts\build-static.js
+
 if %ERRORLEVEL% EQU 0 (
     echo.
     echo ========================================
@@ -53,12 +69,19 @@ if %ERRORLEVEL% EQU 0 (
     echo  - icons\filled  (for solid icons)
     echo.
     echo Then run the server using RunServer.bat
+    echo.
+    echo GitHub Pages files are ready in the github\ folder!
 ) else (
     echo.
     echo ========================================
-    echo  ERROR: Failed to install dependencies
+    echo  WARNING: Failed to generate static files
     echo ========================================
+    echo  You can still use the local server.
+    echo  To generate static files later, run:
+    echo    node generate-static.js
 )
+
+:end
 
 echo.
 pause
