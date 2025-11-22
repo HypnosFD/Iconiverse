@@ -2,7 +2,7 @@
 
 A modern, blazing-fast SVG icon viewer and manager designed for developers and designers. Browse, search, and manage your icon collections with a beautiful, responsive interface.
 
-![Iconiverse Preview](https://via.placeholder.com/800x400?text=Iconiverse+Preview)
+![Iconiverse Preview](https://github.com/HypnosFD/Iconiverse/blob/main/Iconiverse-Preview.png)
 
 ## ✨ Features
 
@@ -14,7 +14,7 @@ A modern, blazing-fast SVG icon viewer and manager designed for developers and d
 - **👁️ Live Preview**: Detailed view with dimension and viewBox information.
 - **⚡ Static & Dynamic**: Runs as a local Node.js server or a static GitHub Pages site.
 
-> **Note:** This is the **Local Version** documentation. For the **Static Version** (GitHub Pages), please see the [GitHub Folder README](github/README.md).
+> **Note:** This is the **Local Version** documentation. For the **Static Version** (GitHub Pages), please see the [Iconiverse-Static](https://github.com/HypnosFD/Iconiverse-Static).
 
 ## 🚀 Quick Start
 
