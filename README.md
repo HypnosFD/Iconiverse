@@ -2,7 +2,7 @@
 
 A modern, blazing-fast SVG icon viewer and manager designed for developers and designers. Browse, search, and manage your icon collections with a beautiful, responsive interface.
 
-![Iconiverse Preview](https://github.com/HypnosFD/Iconiverse/blob/main/Iconiverse-Preview.png)
+![Iconiverse Preview](Iconiverse-Preview.png)
 
 ## ✨ Features
 
