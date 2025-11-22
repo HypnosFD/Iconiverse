@@ -9,11 +9,12 @@ const openModule = require('open');
 const openBrowser = openModule.default || openModule;
 
 const app = express();
-app.use(express.json()); 
+app.use(express.json());
 
-const INITIAL_PORT = 3000; 
-const PORT_FILE = path.join(__dirname, '.svg_viewer_port'); 
+const INITIAL_PORT = 3000;
+const PORT_FILE = path.join(__dirname, '.svg_viewer_port');
 const ICONS_DIR = path.join(__dirname, "icons");
+console.log("Server ICONS_DIR:", ICONS_DIR);
 const PUBLIC_DIR = path.join(__dirname, "public");
 
 
@@ -32,7 +33,7 @@ async function getPreferredPort() {
       return portNumber;
     }
   } catch (e) {
-    
+
   }
   return INITIAL_PORT;
 }
@@ -127,7 +128,7 @@ app.post("/api/download-batch", async (req, res) => {
   try {
     const zip = new AdmZip();
 
-    
+
     async function addDirectoryToZip(dirPath, zipPath = "") {
       const items = await fs.readdir(dirPath, { withFileTypes: true });
       for (const item of items) {
@@ -145,18 +146,18 @@ app.post("/api/download-batch", async (req, res) => {
 
     for (const relativePath of paths) {
       const fullPath = path.join(ICONS_DIR, relativePath);
-      
+
       if (!fullPath.startsWith(ICONS_DIR)) continue;
 
       try {
         const stats = await fs.stat(fullPath);
 
         if (stats.isDirectory()) {
-          
+
           const folderName = path.basename(relativePath);
           await addDirectoryToZip(fullPath, folderName);
         } else {
-          
+
           const content = await fs.readFile(fullPath);
           zip.addFile(path.basename(relativePath), content);
         }
@@ -181,6 +182,7 @@ app.post("/api/download-batch", async (req, res) => {
  */
 app.get("/api/content", async (req, res) => {
   const relativePath = req.query.path || "";
+  console.log(`API Request: /api/content?path=${relativePath}`);
   const fullPath = path.join(ICONS_DIR, relativePath);
 
   const relative = path.relative(ICONS_DIR, fullPath);
@@ -243,7 +245,7 @@ app.get("/api/content", async (req, res) => {
 function startServer(portToTry, isFirstAttempt = true) {
   const server = app.listen(portToTry, async () => {
 
-    
+
     const serverAddress = server.address();
     if (!serverAddress || typeof serverAddress === 'string') {
       server.close();
@@ -251,32 +253,32 @@ function startServer(portToTry, isFirstAttempt = true) {
     }
 
     const actualPort = serverAddress.port;
-    const address = `http:
+    const address = `http://localhost:${actualPort}`;
 
-    console.log(`\n======================================================`);
-    console.log(`  🚀 SVG Icon Viewer Server running at: ${address}`);
-    console.log(`======================================================`);
+    console.log(`\n====================================================== `);
+    console.log(`  🚀 SVG Icon Viewer Server running at: ${address} `);
+    console.log(`====================================================== `);
 
-    
+
     await saveUsedPort(actualPort);
 
     await openBrowser(address);
   });
 
-  
+
   if (isFirstAttempt) {
     server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
-        console.warn(`Port ${portToTry} is busy. Switching to a random available port...`);
-        
-        
+        console.warn(`Port ${portToTry} is busy.Switching to a random available port...`);
+
+
         server.close(() => startServer(0, false));
       } else {
         console.error('Server failed to start:', err);
       }
     });
   } else {
-    
+
     server.on('error', (err) => {
       console.error('Server failed to start on random port:', err);
     });

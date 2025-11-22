@@ -1,5 +1,5 @@
 const FOLDER_SVG =
-  '<svg xmlns="http:
+  '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>';
 
 const VIEW_MODES = ["medium", "large", "compact"];
 const LOCAL_STORAGE_KEY_THEME = "iconBrowserTheme";
@@ -353,10 +353,12 @@ class IconBrowser {
     this.dom.itemCountDisplay.textContent = "Loading...";
 
     try {
+      console.log(`Frontend Fetch: /api/content?path=${path}`);
       const response = await fetch(`/api/content?path=${path}`);
       if (!response.ok) throw new Error(`Server returned status ${response.status}`);
 
       const data = await response.json();
+      console.log("Frontend Received Data:", data);
       this.state.allFoldersInCurrentView = data.filter((item) => item.type === "folder");
       this.state.allIconsInCurrentView = data.filter((item) => item.type === "icon");
 
@@ -445,12 +447,8 @@ class IconBrowser {
   }
 
   selectAll() {
-
     this.state.allIconsInCurrentView.forEach(icon => {
       this.state.selectedPaths.add(icon.path);
-    });
-    this.state.allFoldersInCurrentView.forEach(folder => {
-      this.state.selectedPaths.add(folder.path);
     });
     this.updateBatchUI();
     this.renderIcons();
@@ -464,12 +462,11 @@ class IconBrowser {
 
   updateBatchUI() {
     const count = this.state.selectedPaths.size;
-    const totalItems = this.state.allIconsInCurrentView.length + this.state.allFoldersInCurrentView.length;
-    const hasItems = totalItems > 0;
+    const hasIcons = this.state.allIconsInCurrentView.length > 0;
 
     if (this.dom.batchCount) this.dom.batchCount.textContent = count;
 
-
+    // Download button - show when items selected
     if (this.dom.batchDownloadBtn) {
       this.dom.batchDownloadBtn.disabled = count === 0;
       if (count > 0) {
@@ -479,18 +476,18 @@ class IconBrowser {
       }
     }
 
-
+    // Select All button - always show when there are icons
     if (this.dom.selectAllBtn) {
-      if (hasItems) {
+      if (hasIcons) {
         this.dom.selectAllBtn.classList.remove("hidden");
-
-        this.dom.selectAllBtn.disabled = (count >= totalItems);
+        // Disable if all selected
+        this.dom.selectAllBtn.disabled = (count >= this.state.allIconsInCurrentView.length);
       } else {
         this.dom.selectAllBtn.classList.add("hidden");
       }
     }
 
-
+    // Clear Selection button - show when items selected
     if (this.dom.clearSelectionBtn) {
       if (count > 0) {
         this.dom.clearSelectionBtn.classList.remove("hidden");
@@ -538,6 +535,10 @@ class IconBrowser {
 
 
 
+  // =================================================================
+  // F. UI Actions (Theme, View, Panel, Copy, Download)
+  // =================================================================
+
   toggleTheme() {
     const body = document.body;
     const isDark = body.classList.contains("dark-mode");
@@ -558,10 +559,10 @@ class IconBrowser {
     const btn = this.dom.modeToggleBtn;
     if (!btn) return;
     if (isDark) {
-      btn.innerHTML = `<svg xmlns="http:
+      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
       btn.setAttribute("aria-label", "Switch to light mode");
     } else {
-      btn.innerHTML = `< svg xmlns = "http:
+      btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
       btn.setAttribute("aria-label", "Switch to dark mode");
     }
   }
@@ -603,7 +604,7 @@ class IconBrowser {
 
   selectIcon(iconData, element) {
     if (this.state.selectedIconData && this.state.selectedIconData.name === iconData.name) {
-
+      // Already selected, just open panel
     } else {
       if (this.dom.iconsContainer) {
         const prevSelected = this.dom.iconsContainer.querySelector(".icon-item.selected");
@@ -635,7 +636,7 @@ class IconBrowser {
     if (this.dom.svgPreviewContainer) {
       this.dom.svgPreviewContainer.innerHTML = data.svgContent;
 
-
+      // Add filled icon class if applicable
       const isFilled = data.path && data.path.includes('filled/');
       const previewSection = this.dom.svgPreviewContainer.closest('.preview-section');
       if (previewSection) {
@@ -646,7 +647,7 @@ class IconBrowser {
         }
       }
 
-
+      // Extract SVG attributes from the content
       const parser = new DOMParser();
       const svgDoc = parser.parseFromString(data.svgContent, 'image/svg+xml');
       const svgElement = svgDoc.querySelector('svg');
@@ -656,7 +657,7 @@ class IconBrowser {
         const width = svgElement.getAttribute('width') || 'Not specified';
         const height = svgElement.getAttribute('height') || 'Not specified';
 
-
+        // Update detail spans
         const viewBoxSpan = document.getElementById('viewbox-value');
         const widthSpan = document.getElementById('width-value');
         const heightSpan = document.getElementById('height-value');
@@ -670,13 +671,13 @@ class IconBrowser {
 
   copyToClipboard(text, triggerBtn, successMsg) {
     navigator.clipboard.writeText(text).then(() => {
-
+      // Store original HTML
       const originalHTML = triggerBtn.innerHTML;
 
+      // Success icon SVG
+      const successIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" stroke-width="2"><path d="m12 15 2 2 4-4"/><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
 
-      const successIcon = `<svg xmlns="http:
-
-      
+      // Change to success icon with Copied! text
       triggerBtn.innerHTML = successIcon + '<span style="margin-left: 6px;">Copied!</span>';
       triggerBtn.classList.add("success");
 
@@ -697,7 +698,7 @@ class IconBrowser {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${ name }.svg`;
+    a.download = `${name}.svg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -710,7 +711,7 @@ class IconBrowser {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${ name }.jsx`;
+    a.download = `${name}.jsx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -734,17 +735,16 @@ class IconBrowser {
       .replace(/xmlns:xlink=/g, "xmlnsXlink=")
       .replace(/xlink:href=/g, "xlinkHref=");
 
-    
+    // Remove xmlns
     jsxContent = jsxContent.replace(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/, "");
 
     return `import React from 'react';
 
-      const ${ componentName } = (props) => (
-        ${ jsxContent.replace("<svg", "<svg {...props}")
-    }
-    );
+const ${componentName} = (props) => (
+  ${jsxContent.replace("<svg", "<svg {...props}")}
+);
 
-    export default ${ componentName }; `;
+export default ${componentName};`;
   }
 }
 
