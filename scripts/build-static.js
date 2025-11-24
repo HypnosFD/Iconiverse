@@ -16,33 +16,39 @@ async function ensureDir(dir) {
 
 async function getAllItems(dir, rootDir) {
     let results = [];
-    const items = await fs.readdir(dir, { withFileTypes: true });
+    try {
+        const items = await fs.readdir(dir, { withFileTypes: true });
 
-    for (const item of items) {
-        const fullPath = path.join(dir, item.name);
-        const relativePath = path.relative(rootDir, fullPath).replace(/\\/g, '/');
+        for (const item of items) {
+            const fullPath = path.join(dir, item.name);
+            // Force forward slashes for consistency
+            const relativePath = path.relative(rootDir, fullPath).split(path.sep).join('/');
 
-        if (item.name.startsWith('.')) continue;
+            if (item.name.startsWith('.')) continue;
 
-        if (item.isDirectory()) {
-            results.push({
-                type: 'folder',
-                name: item.name,
-                path: relativePath
-            });
-            
-            const children = await getAllItems(fullPath, rootDir);
-            results = results.concat(children);
-        } else if (path.extname(item.name).toLowerCase() === '.svg') {
-            const content = await fs.readFile(fullPath, 'utf8');
-            const iconName = item.name.slice(0, -4);
-            results.push({
-                type: 'icon',
-                name: iconName,
-                path: relativePath,
-                svgContent: content.trim()
-            });
+            if (item.isDirectory()) {
+                console.log(`📁 Found folder: ${relativePath}`);
+                results.push({
+                    type: 'folder',
+                    name: item.name,
+                    path: relativePath
+                });
+                
+                const children = await getAllItems(fullPath, rootDir);
+                results = results.concat(children);
+            } else if (path.extname(item.name).toLowerCase() === '.svg') {
+                const content = await fs.readFile(fullPath, 'utf8');
+                const iconName = item.name.slice(0, -4);
+                results.push({
+                    type: 'icon',
+                    name: iconName,
+                    path: relativePath,
+                    svgContent: content.trim()
+                });
+            }
         }
+    } catch (err) {
+        console.error(`❌ Error scanning directory ${dir}:`, err);
     }
     return results;
 }
@@ -292,7 +298,23 @@ async function build() {
     // Scan icons
     console.log('🔍 Scanning icons...');
     const allItems = await getAllItems(ICONS_DIR, ICONS_DIR);
-    console.log(`✅ Found ${allItems.length} items`);
+    
+    // Generate summary
+    const folderCount = allItems.filter(i => i.type === 'folder').length;
+    const iconCount = allItems.filter(i => i.type === 'icon').length;
+    const filledFolders = allItems.filter(i => i.type === 'folder' && (i.name === 'filled' || i.path.includes('/filled')));
+    const outlineFolders = allItems.filter(i => i.type === 'folder' && (i.name === 'outline' || i.path.includes('/outline')));
+
+    console.log(`✅ Scan Complete:`);
+    console.log(`   - Total Items: ${allItems.length}`);
+    console.log(`   - Folders: ${folderCount}`);
+    console.log(`   - Icons: ${iconCount}`);
+    console.log(`   - 'filled' folders detected: ${filledFolders.length}`);
+    console.log(`   - 'outline' folders detected: ${outlineFolders.length}`);
+
+    if (filledFolders.length === 0 && outlineFolders.length === 0) {
+        console.warn('⚠️  WARNING: No filled/outline folders detected. Please check your folder structure.');
+    }
 
     // Write data.json
     await fs.writeFile(DATA_FILE, JSON.stringify(allItems, null, 2));

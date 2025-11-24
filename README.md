@@ -20,17 +20,23 @@ A modern, blazing-fast SVG icon viewer and manager designed for developers and d
 - **Iconoir**
 - **Lucide**
 - **Tabler**
+- **Glow Ui**
+- **Pikaicons**
+- **Circumicons**
+- **Boxicons**
 
 > **Note:** This is the **Local Version** documentation. For the **Static Version** (GitHub Pages), please see the [Iconiverse-Static](https://github.com/HypnosFD/Iconiverse-Static).
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - [Node.js](https://nodejs.org/) (v14 or higher)
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/iconiverse.git
    cd iconiverse
@@ -38,13 +44,16 @@ A modern, blazing-fast SVG icon viewer and manager designed for developers and d
 
 2. **Run Setup**
    Double-click `Setup.bat` (Windows) or run:
+
    ```bash
    npm install
    ```
-   *The setup script will automatically install dependencies and create the necessary folder structure.*
+
+   _The setup script will automatically install dependencies and create the necessary folder structure._
 
 3. **Add Your Icons**
    Place your SVG files in the `icons` directory:
+
    - **`icons/outline/`**: For standard stroked icons.
    - **`icons/filled/`**: For solid/filled icons (ensures correct styling).
 
